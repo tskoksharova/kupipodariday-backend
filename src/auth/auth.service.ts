@@ -4,6 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 
+type CreateUserArg = Parameters<UsersService['create']>[0];
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,26 +20,29 @@ export class AuthService {
     about?: string;
     avatar?: string;
   }): Promise<User> {
-    return this.usersService.create(dto as any);
+    return this.usersService.create(dto as unknown as CreateUserArg);
   }
 
   async validateUser(username: string, password: string): Promise<User> {
     const user = await this.usersService.findByUsernameWithPassword(username);
-    if (!user)
+    if (!user) {
       throw new UnauthorizedException('Некорректная пара логин и пароль');
+    }
 
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok)
+    if (!ok) {
       throw new UnauthorizedException('Некорректная пара логин и пароль');
+    }
 
-    delete (user as any).password;
+    const u = user as unknown as { password?: unknown };
+    delete u.password;
+
     return user;
   }
 
   async login(user: User): Promise<{ access_token: string }> {
-    console.log('[AuthService.login] user=', user);
-
-    const payload = { sub: (user as any).id, username: (user as any).username };
+    const u = user as unknown as { id: string; username: string };
+    const payload = { sub: u.id, username: u.username };
     return { access_token: await this.jwtService.signAsync(payload) };
   }
 }

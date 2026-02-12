@@ -49,7 +49,9 @@ export class UsersService {
     });
 
     const saved = await this.usersRepo.save(user);
-    delete (saved as any).password;
+    const u = saved as unknown as { password?: unknown; email?: unknown };
+    delete u.password;
+    delete u.email;
     return saved;
   }
 
@@ -73,7 +75,7 @@ export class UsersService {
     });
   }
 
-  async findById(id: number): Promise<User> {
+  async findmeById(id: number): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Пользователь не найден');
     return user;
@@ -149,7 +151,9 @@ export class UsersService {
     }
 
     const saved = await this.usersRepo.save(user);
-    delete (saved as any).password;
+    const u = saved as unknown as { password?: unknown; email?: unknown };
+    delete u.password;
+    delete u.email;
     return saved;
   }
 

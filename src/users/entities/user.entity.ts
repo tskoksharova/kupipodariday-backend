@@ -29,7 +29,7 @@ export class User {
   })
   avatar: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, select: false })
   email: string;
 
   @Column({ select: false })
