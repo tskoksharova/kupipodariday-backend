@@ -17,6 +17,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { WishesService } from '../wishes/wishes.service';
 
+type RequestWithUserId = Request & { user: { id: number } };
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -26,24 +28,24 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getMe(@Req() req: Request) {
-    const userId = (req.user as any).id;
+  async getMe(@Req() req: RequestWithUserId) {
+    const userId = req.user.id;
     const user = await this.usersService.findmeById(userId);
     return this.usersService.toMeProfile(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
-  async updateMe(@Req() req: Request, @Body() dto: UpdateUserDto) {
-    const userId = (req.user as any).id;
-    const updated = await this.usersService.updateById(userId, dto as any);
+  async updateMe(@Req() req: RequestWithUserId, @Body() dto: UpdateUserDto) {
+    const userId = req.user.id;
+    const updated = await this.usersService.updateById(userId, dto);
     return this.usersService.toMeProfile(updated);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me/wishes')
-  async getMyWishes(@Req() req: Request) {
-    const userId = (req.user as any).id;
+  async getMyWishes(@Req() req: RequestWithUserId) {
+    const userId = req.user.id;
     return this.wishesService.findByOwnerId(userId);
   }
 

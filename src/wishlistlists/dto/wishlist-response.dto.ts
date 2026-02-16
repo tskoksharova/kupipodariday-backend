@@ -34,6 +34,10 @@ export class WishlistResponseDto {
   items: WishPartial[];
 
   static fromEntity(entity: Wishlist): WishlistResponseDto {
+    if (!entity.owner) {
+      throw new Error('Wishlist owner relation is not loaded');
+    }
+
     return {
       id: entity.id,
       createdAt: entity.createdAt,
@@ -41,16 +45,14 @@ export class WishlistResponseDto {
       name: entity.name,
       description: entity.description ?? '',
       image: entity.image ?? '',
-      owner: entity.owner
-        ? {
-            id: entity.owner.id,
-            username: entity.owner.username,
-            about: entity.owner.about,
-            avatar: entity.owner.avatar,
-            createdAt: entity.owner.createdAt,
-            updatedAt: entity.owner.updatedAt,
-          }
-        : (null as any),
+      owner: {
+        id: entity.owner.id,
+        username: entity.owner.username,
+        about: entity.owner.about,
+        avatar: entity.owner.avatar,
+        createdAt: entity.owner.createdAt,
+        updatedAt: entity.owner.updatedAt,
+      },
       items: (entity.items ?? []).map((w) => ({
         id: w.id,
         createdAt: w.createdAt,

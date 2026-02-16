@@ -6,6 +6,15 @@ import { User } from '../users/entities/user.entity';
 
 type CreateUserArg = Parameters<UsersService['create']>[0];
 
+type JwtSignPayload = {
+  sub: number;
+  username: string;
+};
+
+type JwtToken = {
+  access_token: string;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -13,14 +22,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signup(dto: {
-    username: string;
-    email: string;
-    password: string;
-    about?: string;
-    avatar?: string;
-  }): Promise<User> {
-    return this.usersService.create(dto as unknown as CreateUserArg);
+  async signup(dto: CreateUserArg): Promise<User> {
+    return this.usersService.create(dto);
   }
 
   async validateUser(username: string, password: string): Promise<User> {
@@ -34,15 +37,13 @@ export class AuthService {
       throw new UnauthorizedException('Некорректная пара логин и пароль');
     }
 
-    const u = user as unknown as { password?: unknown };
-    delete u.password;
-
-    return user;
+    const { password: _password, ...safeUser } = user;
+    void _password;
+    return safeUser as User;
   }
 
-  async login(user: User): Promise<{ access_token: string }> {
-    const u = user as unknown as { id: string; username: string };
-    const payload = { sub: u.id, username: u.username };
+  async login(user: User): Promise<JwtToken> {
+    const payload: JwtSignPayload = { sub: user.id, username: user.username };
     return { access_token: await this.jwtService.signAsync(payload) };
   }
 }

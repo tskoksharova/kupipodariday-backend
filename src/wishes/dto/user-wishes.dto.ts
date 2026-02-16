@@ -16,8 +16,8 @@ export class UserWishesDto {
       about: user.about,
       avatar: user.avatar,
       email: user.email,
-      wishes: Array.isArray((user as any).wishes)
-        ? (user as any).wishes.map(WishPartialDto.fromEntity)
+      wishes: Array.isArray(user.wishes)
+        ? user.wishes.map(WishPartialDto.fromEntity)
         : [],
     };
   }

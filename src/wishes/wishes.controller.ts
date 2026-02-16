@@ -17,6 +17,8 @@ import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 
+type RequestWithUserId = Request & { user: { id: number } };
+
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
@@ -33,8 +35,8 @@ export class WishesController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Req() req: Request, @Body() dto: CreateWishDto) {
-    const userId = (req.user as any).id;
+  create(@Req() req: RequestWithUserId, @Body() dto: CreateWishDto) {
+    const userId = req.user.id;
     return this.wishesService.create(userId, dto);
   }
 
@@ -53,25 +55,28 @@ export class WishesController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   updateOne(
-    @Req() req: Request,
+    @Req() req: RequestWithUserId,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateWishDto,
   ) {
-    const userId = (req.user as any).id;
+    const userId = req.user.id;
     return this.wishesService.updateOne(id, userId, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  removeOne(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
-    const userId = (req.user as any).id;
+  removeOne(
+    @Req() req: RequestWithUserId,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const userId = req.user.id;
     return this.wishesService.removeOne(id, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/copy')
-  copy(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
-    const userId = (req.user as any).id;
+  copy(@Req() req: RequestWithUserId, @Param('id', ParseIntPipe) id: number) {
+    const userId = req.user.id;
     return this.wishesService.copyWish(id, userId);
   }
 }

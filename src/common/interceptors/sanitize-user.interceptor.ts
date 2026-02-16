@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-function sanitize(value: any): any {
+function sanitize(value: unknown): unknown {
   if (value === null || value === undefined) return value;
 
   if (Array.isArray(value)) {
@@ -15,8 +15,8 @@ function sanitize(value: any): any {
   }
 
   if (typeof value === 'object') {
-    const result: any = {};
-    for (const [k, v] of Object.entries(value)) {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (k === 'password') continue;
       result[k] = sanitize(v);
     }
@@ -28,7 +28,10 @@ function sanitize(value: any): any {
 
 @Injectable()
 export class SanitizeUserInterceptor implements NestInterceptor {
-  intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next.handle().pipe(map((data) => sanitize(data)));
+  intercept(
+    _context: ExecutionContext,
+    next: CallHandler<unknown>,
+  ): Observable<unknown> {
+    return next.handle().pipe(map((data: unknown) => sanitize(data)));
   }
 }

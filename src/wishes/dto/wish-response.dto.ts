@@ -1,6 +1,16 @@
 import { Wish } from '../entities/wish.entity';
 import { OfferResponseDto } from '../../offers/dto/offer-response.dto';
 
+type WishOwnerResponse = {
+  id: number;
+  username: string;
+  about: string;
+  avatar: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export class WishResponseDto {
   id: number;
   name: string;
@@ -10,7 +20,7 @@ export class WishResponseDto {
   raised: number;
   copied: number;
   description: string;
-  owner: any;
+  owner: WishOwnerResponse | null;
   offers: OfferResponseDto[];
   createdAt: Date;
   updatedAt: Date;

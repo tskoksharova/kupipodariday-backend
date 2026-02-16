@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { DEFAULT_ABOUT, DEFAULT_AVATAR } from '../common/constants/defaults';
 import { UserPublicProfileResponseDto } from './dto/user-public-profile-response.dto';
 import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 type CreateUserPayload = {
   username: string;
@@ -49,10 +50,8 @@ export class UsersService {
     });
 
     const saved = await this.usersRepo.save(user);
-    const u = saved as unknown as { password?: unknown; email?: unknown };
-    delete u.password;
-    delete u.email;
-    return saved;
+
+    return this.usersRepo.findOneOrFail({ where: { id: saved.id } });
   }
 
   async findByUsername(username: string): Promise<User | null> {
@@ -82,32 +81,15 @@ export class UsersService {
   }
 
   async findMany(query: string): Promise<User[]> {
-    return this.usersRepo.find({
-      where: [
-        {
-          email: ILike(
-            `%${query}%`,
-          ) as unknown as FindOptionsWhere<User>['email'],
-        },
-        {
-          username: ILike(
-            `%${query}%`,
-          ) as unknown as FindOptionsWhere<User>['username'],
-        },
-      ],
-    });
+    const where: FindOptionsWhere<User>[] = [
+      { email: ILike(`%${query}%`) },
+      { username: ILike(`%${query}%`) },
+    ];
+
+    return this.usersRepo.find({ where });
   }
 
-  async updateById(
-    id: number,
-    dto: {
-      username?: string;
-      email?: string;
-      password?: string;
-      about?: string;
-      avatar?: string;
-    },
-  ): Promise<User> {
+  async updateById(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepo.findOne({
       where: { id },
       select: ['id', 'username', 'email', 'about', 'avatar', 'password'],
@@ -137,8 +119,8 @@ export class UsersService {
         .createQueryBuilder('u')
         .select(['u.id'])
         .where('(u.username = :username OR u.email = :email)', {
-          username: dto.username !== undefined ? user.username : user.username,
-          email: dto.email !== undefined ? user.email : user.email,
+          username: user.username,
+          email: user.email,
         })
         .andWhere('u.id != :id', { id })
         .getOne();
@@ -151,10 +133,8 @@ export class UsersService {
     }
 
     const saved = await this.usersRepo.save(user);
-    const u = saved as unknown as { password?: unknown; email?: unknown };
-    delete u.password;
-    delete u.email;
-    return saved;
+
+    return this.usersRepo.findOneOrFail({ where: { id: saved.id } });
   }
 
   toPublicProfile(user: User): UserPublicProfileResponseDto {
